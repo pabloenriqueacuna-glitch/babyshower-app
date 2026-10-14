@@ -23,7 +23,7 @@ src/
 │   ├── regalos.ts           # Contexto + hook useRegalos (sin JSX, por regla fast-refresh)
 │   └── RegalosContext.tsx   # RegalosProvider (solo exporta el componente)
 ├── hooks/{useLocalStorage,useAuthAdmin}.ts
-├── utils/{inventario,parseXlsx}.ts
+├── utils/{inventario,parseInventario}.ts
 ├── components/              # Navbar, FiltroCategorias, ListaRegalos, RegaloCard, ModalReserva
 ├── components/admin/        # LoginAdmin, PanelAdmin, CargadorXlsx
 ├── mockData.ts              # CATEGORIAS + seed de ejemplo
@@ -36,9 +36,10 @@ src/
 - `cantidadDisponible === 0` → la tarjeta muestra "Agotado" y deshabilita el botón.
 - Lógica pura en `src/utils/inventario.ts` (`estaAgotado`, `cantidadValida`, `descontarStock`).
 
-## Importación Excel (admin)
+## Importación Excel/Numbers (admin)
 - Columnas esperadas (encabezados por nombre, sin importar orden): **Categoría, Producto, Cantidad, Cantidad disponible**. La columna **"Me anoto" se ignora**.
 - Si falta "Cantidad disponible" o viene vacía, se usa "Cantidad". Fila inválida (Producto vacío o Cantidad no numérica) → error con nº de fila y **no se importa nada**.
+- Se aceptan `.xlsx` y `.numbers` (Apple Numbers). `parseInventario` elige el parser por extensión; `parseNumbers` usa `cupertino-files` (import dinámico) y comparte `construirDesdeFilas` con el parser de Excel. Las filas vacías de Numbers se descartan.
 - Importar **reemplaza todo el inventario y borra las reservas** (`cargarInventario`).
 - Acceso admin: hash `#admin`. Contraseña por defecto `baby2026`, guardada en LocalStorage (`babyShower.adminClave`); la sesión vive en `babyShower.adminSesion`. No es seguridad real, solo separación de roles.
 

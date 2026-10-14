@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ChangeEvent } from 'react'
 import type { Regalo, ResultadoImportacion } from '../../types'
-import { parseXlsx } from '../../utils/parseXlsx'
+import { parseInventario } from '../../utils/parseInventario'
 
 interface Props {
   onCargar: (regalos: Regalo[]) => void
@@ -19,12 +19,12 @@ export function CargadorXlsx({ onCargar }: Props) {
     setCargando(true)
     setNombreArchivo(archivo.name)
     try {
-      const parseado = await parseXlsx(archivo)
+      const parseado = await parseInventario(archivo)
       setResultado(parseado)
     } catch {
       setResultado({
         regalos: [],
-        errores: ['No se pudo leer el archivo. Verifica que sea un .xlsx válido.'],
+        errores: ['No se pudo leer el archivo. Verifica que sea un .xlsx o .numbers válido.'],
         advertencias: [],
       })
     } finally {
@@ -47,7 +47,7 @@ export function CargadorXlsx({ onCargar }: Props) {
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm">
-      <h3 className="mb-1 text-base font-bold text-gray-800">Importar inventario desde Excel</h3>
+      <h3 className="mb-1 text-base font-bold text-gray-800">Importar inventario desde Excel o Numbers</h3>
       <p className="mb-4 text-sm text-gray-500">
         Columnas esperadas: <strong>Categoría</strong>, <strong>Producto</strong>,{' '}
         <strong>Cantidad</strong>, <strong>Cantidad disponible</strong>. La columna{' '}
@@ -55,8 +55,8 @@ export function CargadorXlsx({ onCargar }: Props) {
       </p>
 
       <label className="flex cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-celeste-300 bg-celeste-50 px-4 py-6 text-sm font-medium text-celeste-700 hover:bg-celeste-100">
-        <input type="file" accept=".xlsx" onChange={alSeleccionar} className="hidden" />
-        {cargando ? 'Leyendo archivo…' : 'Seleccionar archivo .xlsx'}
+        <input type="file" accept=".xlsx,.numbers" onChange={alSeleccionar} className="hidden" />
+        {cargando ? 'Leyendo archivo…' : 'Seleccionar archivo .xlsx o .numbers'}
       </label>
 
       {nombreArchivo && (

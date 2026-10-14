@@ -1,4 +1,5 @@
 import { readSheet } from 'read-excel-file/browser'
+import type { CellValue } from 'cupertino-files'
 import type { Regalo, ResultadoImportacion } from '../types'
 
 const normalizar = (texto: string) =>
@@ -17,9 +18,9 @@ const aNumero = (valor: unknown): number | null => {
 const aTexto = (valor: unknown): string =>
   valor === null || valor === undefined ? '' : String(valor).trim()
 
-export async function parseXlsx(archivo: File): Promise<ResultadoImportacion> {
-  const filas = await readSheet(archivo)
+const filaVacia = (fila: unknown[]): boolean => fila.every((celda) => aTexto(celda) === '')
 
+function construirDesdeFilas(filas: unknown[][]): ResultadoImportacion {
   if (filas.length < 2) {
     return { regalos: [], errores: ['El archivo no contiene filas de productos.'], advertencias: [] }
   }
@@ -88,4 +89,49 @@ export async function parseXlsx(archivo: File): Promise<ResultadoImportacion> {
   }
 
   return { regalos, errores, advertencias }
+}
+
+export async function parseXlsx(archivo: File): Promise<ResultadoImportacion> {
+  const filas = (await readSheet(archivo)) as unknown[][]
+  return construirDesdeFilas(filas)
+}
+
+const aValorPlano = (celda: CellValue | null): unknown => {
+  if (!celda) return null
+  switch (celda.type) {
+    case 'number':
+      return celda.value
+    case 'text':
+    case 'richText':
+      return celda.value
+    case 'bool':
+      return celda.value
+    case 'date':
+      return celda.value
+    case 'duration':
+      return celda.seconds
+    default:
+      return null
+  }
+}
+
+export async function parseNumbers(archivo: File): Promise<ResultadoImportacion> {
+  const { NumbersDocument } = await import('cupertino-files')
+  const bytes = new Uint8Array(await archivo.arrayBuffer())
+  const documento = NumbersDocument.load(bytes)
+  const tabla = documento.tables()[0]
+
+  if (!tabla) {
+    return { regalos: [], errores: ['El archivo de Numbers no contiene ninguna tabla.'], advertencias: [] }
+  }
+
+  const filas = tabla.grid().map((fila) => fila.map(aValorPlano))
+  const [encabezado, ...cuerpo] = filas
+  const filasUtiles = encabezado ? [encabezado, ...cuerpo.filter((fila) => !filaVacia(fila))] : filas
+
+  return construirDesdeFilas(filasUtiles)
+}
+
+export async function parseInventario(archivo: File): Promise<ResultadoImportacion> {
+  return archivo.name.toLowerCase().endsWith('.numbers') ? parseNumbers(archivo) : parseXlsx(archivo)
 }
