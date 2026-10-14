@@ -1,6 +1,7 @@
 import { readSheet } from 'read-excel-file/browser'
 import type { CellValue } from 'cupertino-files'
 import type { Regalo, ResultadoImportacion } from '../types'
+import { normalizarCategoria } from './categorias'
 
 const normalizar = (texto: string) =>
   texto
@@ -64,7 +65,7 @@ function construirDesdeFilas(filas: unknown[][]): ResultadoImportacion {
       continue
     }
 
-    const categoria = indice.categoria !== -1 ? aTexto(fila[indice.categoria]) : ''
+    const categoria = indice.categoria !== -1 ? normalizarCategoria(aTexto(fila[indice.categoria])) : ''
 
     let disponible = indice.disponible !== -1 ? aNumero(fila[indice.disponible]) : null
     if (disponible === null) disponible = total

@@ -6,6 +6,7 @@ import { Navbar } from './components/Navbar'
 import { PanelAdmin } from './components/admin/PanelAdmin'
 import { useRegalos } from './context/regalos'
 import type { Regalo } from './types'
+import { claveCategoria } from './utils/categorias'
 import { enviarNotificacionReserva } from './utils/notificaciones'
 
 function useHash() {
@@ -25,7 +26,10 @@ function VistaInvitado() {
   const [mensaje, setMensaje] = useState('')
 
   const regalosFiltrados = useMemo(
-    () => (categoria ? regalos.filter((regalo) => regalo.categoria === categoria) : regalos),
+    () =>
+      categoria
+        ? regalos.filter((regalo) => claveCategoria(regalo.categoria) === claveCategoria(categoria))
+        : regalos,
     [regalos, categoria],
   )
 
@@ -59,7 +63,7 @@ function VistaInvitado() {
       )}
 
       <div className="mb-6">
-        <FiltroCategorias seleccionada={categoria} onSeleccionar={setCategoria} />
+        <FiltroCategorias regalos={regalos} seleccionada={categoria} onSeleccionar={setCategoria} />
       </div>
 
       <ListaRegalos regalos={regalosFiltrados} onReservar={setRegaloSeleccionado} />

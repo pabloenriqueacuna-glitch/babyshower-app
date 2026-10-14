@@ -32,6 +32,7 @@ src/
 
 ## Modelo y reglas de negocio
 - `Regalo` tiene `categoria` (además de `cantidadTotal`/`cantidadDisponible`).
+- Las categorías se normalizan (`trim` + minúsculas) al importar y se comparan de forma insensible a mayúsculas/acentos (`src/utils/categorias.ts`); el filtro y el agrupado derivan las categorías presentes del inventario, no solo de `CATEGORIAS`.
 - Reserva válida: `1 <= cantidad <= cantidadDisponible`. Al confirmar se descuenta de inmediato.
 - `cantidadDisponible === 0` → la tarjeta muestra "Agotado" y deshabilita el botón.
 - Lógica pura en `src/utils/inventario.ts` (`estaAgotado`, `cantidadValida`, `descontarStock`).
