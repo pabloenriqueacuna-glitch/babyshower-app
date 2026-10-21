@@ -59,7 +59,7 @@ export async function enviarNotificacionAdmins({
   formData2.append("_captcha", "false")
 
   try {
-    await fetch("https://formsubmit.co/fernanda.bustillos.b@gmail.com", {
+    await fetch("https://formsubmit.co/fonoaudiologia.fernanda.b@gmail.com", {
       method: "POST",
       body: formData2,
     })
