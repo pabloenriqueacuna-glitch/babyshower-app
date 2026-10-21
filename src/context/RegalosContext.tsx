@@ -14,7 +14,7 @@ export function RegalosProvider({ children }: { children: ReactNode }) {
   const [reservas, setReservas] = useLocalStorage<Reserva[]>(CLAVE_RESERVAS, [])
 
   const reservarRegalo = useCallback(
-    (regaloId: string, nombreInvitado: string, cantidad: number) => {
+    (regaloId: string, nombreInvitado: string, emailInvitado: string, cantidad: number) => {
       const regalo = regalos.find((item) => item.id === regaloId)
       if (!regalo || !cantidadValida(regalo, cantidad)) return false
 
@@ -27,6 +27,7 @@ export function RegalosProvider({ children }: { children: ReactNode }) {
           id: crypto.randomUUID(),
           regaloId,
           nombreInvitado: nombreInvitado.trim(),
+          emailInvitado: emailInvitado.trim(),
           cantidadRegalada: cantidad,
           fecha: new Date().toISOString(),
         },

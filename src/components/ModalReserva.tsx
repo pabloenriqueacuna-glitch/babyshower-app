@@ -4,11 +4,12 @@ import type { Regalo } from '../types'
 interface Props {
   regalo: Regalo
   onCerrar: () => void
-  onConfirmar: (nombre: string, cantidad: number) => void
+  onConfirmar: (nombre: string, email: string, cantidad: number) => void
 }
 
 export function ModalReserva({ regalo, onCerrar, onConfirmar }: Props) {
   const [nombre, setNombre] = useState('')
+  const [email, setEmail] = useState('')
   const [cantidad, setCantidad] = useState(1)
   const [error, setError] = useState('')
 
@@ -25,11 +26,15 @@ export function ModalReserva({ regalo, onCerrar, onConfirmar }: Props) {
       setError('Ingresa tu nombre para continuar.')
       return
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Ingresa un correo electrónico válido.')
+      return
+    }
     if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > regalo.cantidadDisponible) {
       setError(`La cantidad debe estar entre 1 y ${regalo.cantidadDisponible}.`)
       return
     }
-    onConfirmar(nombre, cantidad)
+    onConfirmar(nombre, email, cantidad)
   }
 
   return (
@@ -62,6 +67,15 @@ export function ModalReserva({ regalo, onCerrar, onConfirmar }: Props) {
           value={nombre}
           onChange={(evento) => setNombre(evento.target.value)}
           placeholder="Ej: María Pérez"
+          className="mb-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-celeste-500 focus:outline-none"
+        />
+
+        <label className="mb-1 block text-sm font-medium text-gray-700">Tu correo electrónico</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(evento) => setEmail(evento.target.value)}
+          placeholder="Ej: maria@correo.com"
           className="mb-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-celeste-500 focus:outline-none"
         />
 

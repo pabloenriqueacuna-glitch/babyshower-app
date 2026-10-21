@@ -4,7 +4,12 @@ import type { Regalo, Reserva } from '../types'
 export interface RegalosContexto {
   regalos: Regalo[]
   reservas: Reserva[]
-  reservarRegalo: (regaloId: string, nombreInvitado: string, cantidad: number) => boolean
+  reservarRegalo: (
+    regaloId: string,
+    nombreInvitado: string,
+    emailInvitado: string,
+    cantidad: number,
+  ) => boolean
   cargarInventario: (regalos: Regalo[]) => void
   reiniciarTodo: () => void
 }

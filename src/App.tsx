@@ -33,14 +33,15 @@ function VistaInvitado() {
     [regalos, categoria],
   )
 
-  const confirmar = (nombre: string, cantidad: number) => {
+  const confirmar = (nombre: string, email: string, cantidad: number) => {
     if (!regaloSeleccionado) return
-    const exito = reservarRegalo(regaloSeleccionado.id, nombre, cantidad)
+    const exito = reservarRegalo(regaloSeleccionado.id, nombre, email, cantidad)
     if (exito) {
       const nombreLimpio = nombre.trim()
       setMensaje(`¡Gracias ${nombreLimpio}! Reservaste ${cantidad} × ${regaloSeleccionado.nombre}.`)
       enviarNotificacionReserva({
         nombre: nombreLimpio,
+        email: email.trim(),
         producto: regaloSeleccionado.nombre,
         cantidad,
       })

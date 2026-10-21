@@ -1,15 +1,17 @@
 export interface DatosReserva {
   nombre: string
+  email: string
   producto: string
   cantidad: number
 }
 
-export function enviarNotificacionReserva({ nombre, producto, cantidad }: DatosReserva) {
+export function enviarNotificacionReserva({ nombre, email, producto, cantidad }: DatosReserva) {
   const url = 'https://formsubmit.co/pabloenriqueacuna@gmail.com'
 
   const datos = new FormData()
   datos.append('_subject', `Nueva reserva: ${producto} (${cantidad})`)
   datos.append('nombre', nombre)
+  datos.append('email', email)
   datos.append('producto', producto)
   datos.append('cantidad', String(cantidad))
 

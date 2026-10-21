@@ -13,6 +13,7 @@ export interface Reserva {
   id: string
   regaloId: string
   nombreInvitado: string
+  emailInvitado: string
   cantidadRegalada: number
   fecha: string
 }
