@@ -5,9 +5,6 @@ export interface DatosReserva {
   cantidad: number
 }
 
-const FORMSUBMIT_TOKEN = "498dc909d3c03d4e2796d91c86f53773"
-const FORMSUBMIT_ENDPOINT = `https://formsubmit.co/submit/${FORMSUBMIT_TOKEN}`
-
 export async function enviarCorreoAgradecimiento({
   nombre,
   email,
@@ -16,13 +13,12 @@ export async function enviarCorreoAgradecimiento({
   email: string
 }) {
   const formData = new FormData()
-  formData.append("_to", email.trim())
   formData.append("_subject", `Muchísimas gracias ${nombre.trim()}!`)
   formData.append("mensaje", "Te agradecemos enormemente el regalito para Emilia ❤️.")
   formData.append("_captcha", "false")
 
   try {
-    await fetch(FORMSUBMIT_ENDPOINT, {
+    await fetch(`https://formsubmit.co/${encodeURIComponent(email.trim())}`, {
       method: "POST",
       body: formData,
     })
@@ -38,10 +34,6 @@ export async function enviarNotificacionAdmins({
   cantidad,
 }: DatosReserva) {
   const formData = new FormData()
-  formData.append(
-    "_to",
-    "pabloenriqueacuna@gmail.com,fonoaudiologia.fernanda.b@gmail.com",
-  )
   formData.append("_subject", `Nueva reserva: ${producto} (${cantidad})`)
   formData.append("nombre", nombre.trim())
   formData.append("email", email.trim())
@@ -50,9 +42,26 @@ export async function enviarNotificacionAdmins({
   formData.append("_captcha", "false")
 
   try {
-    await fetch(FORMSUBMIT_ENDPOINT, {
+    await fetch("https://formsubmit.co/pabloenriqueacuna@gmail.com", {
       method: "POST",
       body: formData,
+    })
+  } catch {
+    // Ignorar errores de notificación
+  }
+
+  const formData2 = new FormData()
+  formData2.append("_subject", `Nueva reserva: ${producto} (${cantidad})`)
+  formData2.append("nombre", nombre.trim())
+  formData2.append("email", email.trim())
+  formData2.append("producto", producto)
+  formData2.append("cantidad", String(cantidad))
+  formData2.append("_captcha", "false")
+
+  try {
+    await fetch("https://formsubmit.co/fonoaudiologia.fernanda.b@gmail.com", {
+      method: "POST",
+      body: formData2,
     })
   } catch {
     // Ignorar errores de notificación
