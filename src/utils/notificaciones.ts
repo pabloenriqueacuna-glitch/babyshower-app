@@ -5,20 +5,69 @@ export interface DatosReserva {
   cantidad: number
 }
 
-export function enviarNotificacionReserva({ nombre, email, producto, cantidad }: DatosReserva) {
-  const url = 'https://formsubmit.co/pabloenriqueacuna@gmail.com'
+export async function enviarCorreoAgradecimiento({
+  nombre,
+  email,
+}: {
+  nombre: string
+  email: string
+}) {
+  const formData = new FormData()
+  formData.append("_subject", `Muchísimas gracias ${nombre.trim()}!`)
+  formData.append("mensaje", "Te agradecemos enormemente el regalito para Emilia ❤️.")
+  formData.append("_captcha", "false")
 
-  const datos = new FormData()
-  datos.append('_subject', `Nueva reserva: ${producto} (${cantidad})`)
-  datos.append('nombre', nombre)
-  datos.append('email', email)
-  datos.append('producto', producto)
-  datos.append('cantidad', String(cantidad))
+  try {
+    await fetch(`https://formsubmit.co/${encodeURIComponent(email.trim())}`, {
+      method: "POST",
+      body: formData,
+    })
+  } catch {
+    // Ignorar errores de notificación
+  }
+}
 
-  void fetch(url, {
-    method: 'POST',
-    body: datos,
-  }).catch(() => {
-    // Fire-and-forget: ignorar errores para no interrumpir el flujo
-  })
+export async function enviarNotificacionAdmins({
+  nombre,
+  email,
+  producto,
+  cantidad,
+}: DatosReserva) {
+  const formData = new FormData()
+  formData.append("_subject", `Nueva reserva: ${producto} (${cantidad})`)
+  formData.append("nombre", nombre.trim())
+  formData.append("email", email.trim())
+  formData.append("producto", producto)
+  formData.append("cantidad", String(cantidad))
+  formData.append("_captcha", "false")
+
+  try {
+    await fetch("https://formsubmit.co/pabloenriqueacuna@gmail.com", {
+      method: "POST",
+      body: formData,
+    })
+  } catch {
+    // Ignorar errores de notificación
+  }
+
+  const formData2 = new FormData()
+  formData2.append("_subject", `Nueva reserva: ${producto} (${cantidad})`)
+  formData2.append("nombre", nombre.trim())
+  formData2.append("email", email.trim())
+  formData2.append("producto", producto)
+  formData2.append("cantidad", String(cantidad))
+  formData2.append("_captcha", "false")
+
+  try {
+    await fetch("https://formsubmit.co/fernanda.bustillos.b@gmail.com", {
+      method: "POST",
+      body: formData2,
+    })
+  } catch {
+    // Ignorar errores de notificación
+  }
+}
+
+export function enviarNotificacionReserva(datos: DatosReserva) {
+  void enviarNotificacionAdmins(datos)
 }

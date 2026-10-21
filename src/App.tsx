@@ -7,7 +7,7 @@ import { PanelAdmin } from './components/admin/PanelAdmin'
 import { useRegalos } from './context/regalos'
 import type { Regalo } from './types'
 import { claveCategoria } from './utils/categorias'
-import { enviarNotificacionReserva } from './utils/notificaciones'
+import { enviarCorreoAgradecimiento, enviarNotificacionAdmins } from './utils/notificaciones'
 
 function useHash() {
   const [hash, setHash] = useState(() => window.location.hash)
@@ -39,7 +39,11 @@ function VistaInvitado() {
     if (exito) {
       const nombreLimpio = nombre.trim()
       setMensaje(`¡Gracias ${nombreLimpio}! Reservaste ${cantidad} × ${regaloSeleccionado.nombre}.`)
-      enviarNotificacionReserva({
+      void enviarCorreoAgradecimiento({
+        nombre: nombreLimpio,
+        email: email.trim(),
+      })
+      void enviarNotificacionAdmins({
         nombre: nombreLimpio,
         email: email.trim(),
         producto: regaloSeleccionado.nombre,
