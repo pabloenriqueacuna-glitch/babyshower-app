@@ -57,7 +57,11 @@ function VistaInvitado() {
     <div className="mx-auto max-w-5xl px-4 py-6">
       <div className="mb-6 rounded-2xl bg-rosado-100 p-4 text-center">
         <p className="text-sm text-gray-600">
-          Elige un regalo y anótate. Así evitamos repetir obsequios. ¡Gracias por acompañarnos!
+          💕 Lo más importante para nosotros es contar con tu compañía y cariño en la bienvenida de nuestra princesa 🎀👶🏻
+          Te dejamos una lista de ideas para inspirarte. Elige un regalo y anótate para evitar repetir obsequios.
+          Y si algo no está disponible o prefieres elegir otra cosita, eres totalmente libre de hacerlo:  la lista es solo una guía y cualquier detalle para nuestra bebita será recibido con muchísimo amor. 🩷
+          Si puedes, recuerda pedir ticket de cambio por si necesitamos cambiar talla o modelo. 🥰
+          ¡Gracias por ser parte de este momento tan especial para nosotros! ✨💕
         </p>
       </div>
 
