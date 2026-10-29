@@ -57,6 +57,14 @@ supabase/schema.sql          # Tablas, RLS, RPCs y Realtime para Supabase
 - `cargar_inventario` reemplaza todo el inventario y borra las reservas; se usa para importar, "Restaurar datos de ejemplo" y "Vaciar inventario".
 - La seguridad sigue siendo de roles: la clave admin es solo UI y las RPC están expuestas al rol `anon`. No usar para datos sensibles.
 
+## Notificaciones por correo (FormSubmit)
+- Se envían desde el navegador a `https://formsubmit.co/ajax/<destino>` con JSON. FormSubmit responde HTTP 200 incluso en errores, así que hay que validar `String(data.success) === "true"`; no basta con `response.ok`.
+- Destinatarios admin configurables con `VITE_FORMSUBMIT_ADMIN_1` y `VITE_FORMSUBMIT_ADMIN_2`; por defecto son `pabloenriqueacuna@gmail.com` y `fonoaudiologia.fernanda.b@gmail.com`.
+- Cada dirección debe activarse una vez desde el correo "Activate Form". Hasta activarla, FormSubmit responde "This form needs Activation" y reenvía la activación en cada intento.
+- El agradecimiento al invitado también requiere activación; la app le avisa en pantalla que revise su correo y Spam. Los envíos previos a la activación se entregan después de activar (hasta 30 días).
+- Si una dirección sigue pidiendo activación después de activarla, usar el string aleatorio que llega en ese correo en la variable correspondiente.
+- La reserva no depende del correo: si el envío falla, se guarda igual y se muestra un aviso no bloqueante. FormSubmit puede estar caído (HTTP 521) y no hay reintentos automáticos.
+
 ## Gotchas
 - **`read-excel-file` v9**: importar `{ readSheet }` desde `'read-excel-file/browser'` (no existe el import raíz `'read-excel-file'`). El export default devuelve todas las hojas; `readSheet` devuelve las filas de una hoja.
 - Claves de LocalStorage: `babyShower.regalos`, `babyShower.reservas`, `babyShower.adminSesion`, `babyShower.adminClave`.

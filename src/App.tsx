@@ -24,6 +24,7 @@ function VistaInvitado() {
   const [categoria, setCategoria] = useState<string | null>(null)
   const [regaloSeleccionado, setRegaloSeleccionado] = useState<Regalo | null>(null)
   const [mensaje, setMensaje] = useState('')
+  const [avisoCorreo, setAvisoCorreo] = useState('')
 
   const regalosFiltrados = useMemo(
     () =>
@@ -33,26 +34,65 @@ function VistaInvitado() {
     [regalos, categoria],
   )
 
+  const notificarReserva = async (
+    nombre: string,
+    email: string,
+    regalo: Regalo,
+    cantidad: number,
+  ) => {
+    try {
+      const [resultadoInvitado, resultadosAdmins] = await Promise.all([
+        enviarCorreoAgradecimiento({ nombre, email }),
+        enviarNotificacionAdmins({
+          nombre,
+          email,
+          producto: regalo.nombre,
+          cantidad,
+        }),
+      ])
+
+      const avisos: string[] = []
+
+      if (!resultadoInvitado.ok) {
+        console.error('FormSubmit (invitado):', resultadoInvitado.mensaje)
+        avisos.push(
+          resultadoInvitado.tipo === 'activacion'
+            ? 'Revisa tu correo y Spam; busca “Activate Form” para recibir el agradecimiento.'
+            : 'No se pudo enviar el correo de agradecimiento.',
+        )
+      }
+
+      if (resultadosAdmins.some((resultado) => !resultado.ok)) {
+        resultadosAdmins.forEach((resultado) => {
+          if (!resultado.ok) console.error('FormSubmit (admin):', resultado.mensaje)
+        })
+        avisos.push('No se pudo enviar el aviso a los organizadores.')
+      }
+
+      if (avisos.length > 0) {
+        setAvisoCorreo(`La reserva quedó guardada. ${avisos.join(' ')}`)
+      }
+    } catch (error) {
+      console.error('No se pudieron enviar las notificaciones:', error)
+      setAvisoCorreo(
+        'La reserva quedó guardada, pero no se pudo enviar el aviso por correo.',
+      )
+    }
+  }
+
   const confirmar = async (nombre: string, email: string, cantidad: number) => {
     if (!regaloSeleccionado) return false
 
+    setAvisoCorreo('')
     const regalo = regaloSeleccionado
     const exito = await reservarRegalo(regalo.id, nombre, email, cantidad)
     if (!exito) return false
 
     const nombreLimpio = nombre.trim()
+    const emailLimpio = email.trim()
     setMensaje(`¡Gracias ${nombreLimpio}! Reservaste ${cantidad} × ${regalo.nombre}.`)
     setRegaloSeleccionado(null)
-    void enviarCorreoAgradecimiento({
-      nombre: nombreLimpio,
-      email: email.trim(),
-    })
-    void enviarNotificacionAdmins({
-      nombre: nombreLimpio,
-      email: email.trim(),
-      producto: regalo.nombre,
-      cantidad,
-    })
+    void notificarReserva(nombreLimpio, emailLimpio, regalo, cantidad)
     return true
   }
 
@@ -83,6 +123,12 @@ function VistaInvitado() {
       {mensaje && (
         <p className="mb-4 rounded-xl bg-menta-100 p-3 text-center text-sm font-medium text-menta-500">
           {mensaje}
+        </p>
+      )}
+
+      {avisoCorreo && (
+        <p className="mb-4 rounded-xl bg-crema-100 p-3 text-center text-sm font-medium text-gray-700">
+          {avisoCorreo}
         </p>
       )}
 
