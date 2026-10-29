@@ -5,7 +5,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <span aria-hidden className="text-2xl">🍼</span>
           <div>
-            <h1 className="text-lg font-bold text-celeste-700 sm:text-xl">Lista de Regalos para Emilia</h1>
+            <h1 className="text-lg font-bold text-celeste-700 sm:text-xl">Bienvenida de nuestra bebita</h1>
             <p className="text-xs text-gray-500">Baby Shower</p>
           </div>
         </div>
