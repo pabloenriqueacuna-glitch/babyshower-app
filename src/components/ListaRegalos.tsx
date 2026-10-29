@@ -30,7 +30,7 @@ export function ListaRegalos({ regalos, onReservar }: Props) {
   if (regalos.length === 0) {
     return (
       <p className="rounded-2xl bg-white p-8 text-center text-gray-500 shadow-sm">
-        No hay regalos en esta categoría.
+        No hay regalos disponibles.
       </p>
     )
   }

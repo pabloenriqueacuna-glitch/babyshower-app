@@ -20,7 +20,7 @@ function useHash() {
 }
 
 function VistaInvitado() {
-  const { regalos, reservarRegalo } = useRegalos()
+  const { regalos, reservarRegalo, cargando, error } = useRegalos()
   const [categoria, setCategoria] = useState<string | null>(null)
   const [regaloSeleccionado, setRegaloSeleccionado] = useState<Regalo | null>(null)
   const [mensaje, setMensaje] = useState('')
@@ -33,24 +33,27 @@ function VistaInvitado() {
     [regalos, categoria],
   )
 
-  const confirmar = (nombre: string, email: string, cantidad: number) => {
-    if (!regaloSeleccionado) return
-    const exito = reservarRegalo(regaloSeleccionado.id, nombre, email, cantidad)
-    if (exito) {
-      const nombreLimpio = nombre.trim()
-      setMensaje(`¡Gracias ${nombreLimpio}! Reservaste ${cantidad} × ${regaloSeleccionado.nombre}.`)
-      void enviarCorreoAgradecimiento({
-        nombre: nombreLimpio,
-        email: email.trim(),
-      })
-      void enviarNotificacionAdmins({
-        nombre: nombreLimpio,
-        email: email.trim(),
-        producto: regaloSeleccionado.nombre,
-        cantidad,
-      })
-    }
+  const confirmar = async (nombre: string, email: string, cantidad: number) => {
+    if (!regaloSeleccionado) return false
+
+    const regalo = regaloSeleccionado
+    const exito = await reservarRegalo(regalo.id, nombre, email, cantidad)
+    if (!exito) return false
+
+    const nombreLimpio = nombre.trim()
+    setMensaje(`¡Gracias ${nombreLimpio}! Reservaste ${cantidad} × ${regalo.nombre}.`)
     setRegaloSeleccionado(null)
+    void enviarCorreoAgradecimiento({
+      nombre: nombreLimpio,
+      email: email.trim(),
+    })
+    void enviarNotificacionAdmins({
+      nombre: nombreLimpio,
+      email: email.trim(),
+      producto: regalo.nombre,
+      cantidad,
+    })
+    return true
   }
 
   return (
@@ -65,17 +68,33 @@ function VistaInvitado() {
         </p>
       </div>
 
+      {cargando && (
+        <p className="mb-4 rounded-xl bg-celeste-50 p-3 text-center text-sm font-medium text-celeste-700">
+          Cargando lista de regalos…
+        </p>
+      )}
+
+      {error && (
+        <p className="mb-4 rounded-xl bg-rosado-100 p-3 text-center text-sm font-medium text-rosado-500">
+          {error}
+        </p>
+      )}
+
       {mensaje && (
         <p className="mb-4 rounded-xl bg-menta-100 p-3 text-center text-sm font-medium text-menta-500">
           {mensaje}
         </p>
       )}
 
-      <div className="mb-6">
-        <FiltroCategorias regalos={regalos} seleccionada={categoria} onSeleccionar={setCategoria} />
-      </div>
+      {!cargando && (
+        <div className="mb-6">
+          <FiltroCategorias regalos={regalos} seleccionada={categoria} onSeleccionar={setCategoria} />
+        </div>
+      )}
 
-      <ListaRegalos regalos={regalosFiltrados} onReservar={setRegaloSeleccionado} />
+      {!cargando && (
+        <ListaRegalos regalos={regalosFiltrados} onReservar={setRegaloSeleccionado} />
+      )}
 
       {regaloSeleccionado && (
         <ModalReserva

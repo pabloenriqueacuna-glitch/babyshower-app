@@ -4,19 +4,22 @@ import type { Regalo, ResultadoImportacion } from '../../types'
 import { parseInventario } from '../../utils/parseInventario'
 
 interface Props {
-  onCargar: (regalos: Regalo[]) => void
+  onCargar: (regalos: Regalo[]) => Promise<boolean>
 }
 
 export function CargadorXlsx({ onCargar }: Props) {
   const [resultado, setResultado] = useState<ResultadoImportacion | null>(null)
   const [nombreArchivo, setNombreArchivo] = useState('')
-  const [cargando, setCargando] = useState(false)
+  const [leyendo, setLeyendo] = useState(false)
+  const [importando, setImportando] = useState(false)
+  const [errorGuardado, setErrorGuardado] = useState('')
 
   const alSeleccionar = async (evento: ChangeEvent<HTMLInputElement>) => {
     const archivo = evento.target.files?.[0]
     if (!archivo) return
 
-    setCargando(true)
+    setLeyendo(true)
+    setErrorGuardado('')
     setNombreArchivo(archivo.name)
     try {
       const parseado = await parseInventario(archivo)
@@ -28,22 +31,34 @@ export function CargadorXlsx({ onCargar }: Props) {
         advertencias: [],
       })
     } finally {
-      setCargando(false)
+      setLeyendo(false)
       evento.target.value = ''
     }
   }
 
-  const confirmar = () => {
-    if (!resultado || resultado.errores.length > 0) return
-    onCargar(resultado.regalos)
-    setResultado(null)
-    setNombreArchivo('')
+  const confirmar = async () => {
+    if (!resultado || resultado.errores.length > 0 || importando) return
+
+    setImportando(true)
+    setErrorGuardado('')
+    const exito = await onCargar(resultado.regalos)
+    setImportando(false)
+
+    if (exito) {
+      setResultado(null)
+      setNombreArchivo('')
+    } else {
+      setErrorGuardado('No se pudo guardar el inventario. Inténtalo de nuevo.')
+    }
   }
 
   const cancelar = () => {
     setResultado(null)
     setNombreArchivo('')
+    setErrorGuardado('')
   }
+
+  const sinProductos = !resultado || resultado.regalos.length === 0
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm">
@@ -55,8 +70,14 @@ export function CargadorXlsx({ onCargar }: Props) {
       </p>
 
       <label className="flex cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-celeste-300 bg-celeste-50 px-4 py-6 text-sm font-medium text-celeste-700 hover:bg-celeste-100">
-        <input type="file" accept=".xlsx,.numbers" onChange={alSeleccionar} className="hidden" />
-        {cargando ? 'Leyendo archivo…' : 'Seleccionar archivo .xlsx o .numbers'}
+        <input
+          type="file"
+          accept=".xlsx,.numbers"
+          onChange={alSeleccionar}
+          disabled={importando}
+          className="hidden"
+        />
+        {leyendo ? 'Leyendo archivo…' : 'Seleccionar archivo .xlsx o .numbers'}
       </label>
 
       {nombreArchivo && (
@@ -112,25 +133,32 @@ export function CargadorXlsx({ onCargar }: Props) {
             </div>
           )}
 
+          {errorGuardado && (
+            <p className="mb-3 rounded-xl bg-rosado-100 p-3 text-sm font-medium text-rosado-500">
+              {errorGuardado}
+            </p>
+          )}
+
           <div className="flex gap-2">
             <button
               type="button"
               onClick={cancelar}
-              className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+              disabled={importando}
+              className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="button"
-              disabled={resultado.errores.length > 0 || resultado.regalos.length === 0}
+              disabled={sinProductos || resultado.errores.length > 0 || importando}
               onClick={confirmar}
               className={`flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white ${
-                resultado.errores.length > 0 || resultado.regalos.length === 0
+                sinProductos || resultado.errores.length > 0 || importando
                   ? 'cursor-not-allowed bg-gray-300'
                   : 'bg-menta-500 hover:bg-menta-300'
               }`}
             >
-              Importar {resultado.regalos.length} productos
+              {importando ? 'Guardando…' : `Importar ${resultado.regalos.length} productos`}
             </button>
           </div>
         </div>

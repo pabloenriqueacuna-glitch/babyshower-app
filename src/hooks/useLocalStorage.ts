@@ -1,22 +1,21 @@
 import { useCallback, useEffect, useState } from 'react'
+import { guardarLocal, leerLocal } from '../utils/almacenLocal'
 
 export function useLocalStorage<T>(clave: string, valorInicial: T) {
-  const [valor, setValor] = useState<T>(() => {
-    try {
-      const guardado = window.localStorage.getItem(clave)
-      return guardado !== null ? (JSON.parse(guardado) as T) : valorInicial
-    } catch {
-      return valorInicial
-    }
-  })
+  const [valor, setValor] = useState<T>(() => leerLocal(clave, valorInicial))
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(clave, JSON.stringify(valor))
-    } catch {
-      // La persistencia no está disponible; se ignora de forma silenciosa.
-    }
+    guardarLocal(clave, valor)
   }, [clave, valor])
+
+  useEffect(() => {
+    const alCambiar = (evento: StorageEvent) => {
+      if (evento.key !== clave) return
+      setValor(leerLocal(clave, valorInicial))
+    }
+    window.addEventListener('storage', alCambiar)
+    return () => window.removeEventListener('storage', alCambiar)
+  }, [clave, valorInicial])
 
   const reiniciar = useCallback(() => setValor(valorInicial), [valorInicial])
 

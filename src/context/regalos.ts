@@ -1,17 +1,21 @@
 import { createContext, useContext } from 'react'
-import type { Regalo, Reserva } from '../types'
+import type { Regalo } from '../types'
 
 export interface RegalosContexto {
   regalos: Regalo[]
-  reservas: Reserva[]
+  totalReservas: number
+  cargando: boolean
+  error: string
+  modoCompartido: boolean
   reservarRegalo: (
     regaloId: string,
     nombreInvitado: string,
     emailInvitado: string,
     cantidad: number,
-  ) => boolean
-  cargarInventario: (regalos: Regalo[]) => void
-  reiniciarTodo: () => void
+  ) => Promise<boolean>
+  cargarInventario: (regalos: Regalo[]) => Promise<boolean>
+  reiniciarTodo: () => Promise<boolean>
+  vaciarInventario: () => Promise<boolean>
 }
 
 export const Contexto = createContext<RegalosContexto | null>(null)

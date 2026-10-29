@@ -4,7 +4,7 @@ import type { Regalo } from '../types'
 interface Props {
   regalo: Regalo
   onCerrar: () => void
-  onConfirmar: (nombre: string, email: string, cantidad: number) => void
+  onConfirmar: (nombre: string, email: string, cantidad: number) => Promise<boolean>
 }
 
 export function ModalReserva({ regalo, onCerrar, onConfirmar }: Props) {
@@ -12,16 +12,22 @@ export function ModalReserva({ regalo, onCerrar, onConfirmar }: Props) {
   const [email, setEmail] = useState('')
   const [cantidad, setCantidad] = useState(1)
   const [error, setError] = useState('')
+  const [enviando, setEnviando] = useState(false)
+
+  const cerrar = () => {
+    if (!enviando) onCerrar()
+  }
 
   useEffect(() => {
     const alPresionar = (evento: KeyboardEvent) => {
-      if (evento.key === 'Escape') onCerrar()
+      if (evento.key === 'Escape' && !enviando) onCerrar()
     }
     window.addEventListener('keydown', alPresionar)
     return () => window.removeEventListener('keydown', alPresionar)
-  }, [onCerrar])
+  }, [enviando, onCerrar])
 
-  const confirmar = () => {
+  const confirmar = async () => {
+    if (enviando) return
     if (nombre.trim() === '') {
       setError('Ingresa tu nombre para continuar.')
       return
@@ -34,13 +40,20 @@ export function ModalReserva({ regalo, onCerrar, onConfirmar }: Props) {
       setError(`La cantidad debe estar entre 1 y ${regalo.cantidadDisponible}.`)
       return
     }
-    onConfirmar(nombre, email, cantidad)
+
+    setError('')
+    setEnviando(true)
+    const exito = await onConfirmar(nombre, email, cantidad)
+    if (!exito) {
+      setError('No se pudo registrar la reserva. Revisa la disponibilidad e inténtalo de nuevo.')
+      setEnviando(false)
+    }
   }
 
   return (
     <div
       className="fixed inset-0 z-20 flex items-end justify-center bg-black/40 p-4 sm:items-center"
-      onClick={onCerrar}
+      onClick={cerrar}
     >
       <div
         className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
@@ -53,7 +66,7 @@ export function ModalReserva({ regalo, onCerrar, onConfirmar }: Props) {
           </div>
           <button
             type="button"
-            onClick={onCerrar}
+            onClick={cerrar}
             aria-label="Cerrar"
             className="rounded-full px-2 text-xl text-gray-400 hover:text-gray-600"
           >
@@ -97,17 +110,19 @@ export function ModalReserva({ regalo, onCerrar, onConfirmar }: Props) {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={onCerrar}
-            className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+            onClick={cerrar}
+            disabled={enviando}
+            className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
             type="button"
             onClick={confirmar}
-            className="flex-1 rounded-xl bg-celeste-500 px-4 py-2 text-sm font-semibold text-white hover:bg-celeste-700"
+            disabled={enviando}
+            className="flex-1 rounded-xl bg-celeste-500 px-4 py-2 text-sm font-semibold text-white hover:bg-celeste-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Confirmar
+            {enviando ? 'Guardando…' : 'Confirmar'}
           </button>
         </div>
       </div>
