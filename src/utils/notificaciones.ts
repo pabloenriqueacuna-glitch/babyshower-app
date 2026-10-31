@@ -7,98 +7,72 @@ export interface DatosReserva {
 
 export type ResultadoEnvio =
   | { ok: true }
-  | { ok: false; tipo: "activacion" | "error"; mensaje: string }
+  | { ok: false; mensaje: string }
 
-const ADMIN_1 =
-  import.meta.env.VITE_FORMSUBMIT_ADMIN_1?.trim() || "pabloenriqueacuna@gmail.com"
-const ADMIN_2 =
-  import.meta.env.VITE_FORMSUBMIT_ADMIN_2?.trim() || "fonoaudiologia.fernanda.b@gmail.com"
+const SERVICIO = import.meta.env.VITE_EMAILJS_SERVICE_ID?.trim() || ""
+const CLAVE_PUBLICA = import.meta.env.VITE_EMAILJS_PUBLIC_KEY?.trim() || ""
+const PLANTILLA_AVISO = import.meta.env.VITE_EMAILJS_TEMPLATE_AVISO?.trim() || ""
 
-function esActivacion(mensaje: string) {
-  const texto = mensaje.toLowerCase()
-  return texto.includes("activation") || texto.includes("activate") || texto.includes("actived")
+function describirError(status: number, texto: string) {
+  if (status === 400) {
+    return "La configuración de EmailJS no es válida (service, plantilla o Public Key)."
+  }
+  if (status === 412) {
+    return "Gmail rechazó el envío. Hay que reconectar la cuenta en EmailJS."
+  }
+  if (status === 422) {
+    return "El correo del invitado no es válido o la plantilla no tiene destinatario."
+  }
+  if (status === 429) {
+    return "Se alcanzó el límite de envíos de EmailJS."
+  }
+
+  const detalle = texto.trim()
+  return detalle !== "" ? detalle : `EmailJS respondió HTTP ${status}.`
 }
 
-async function enviarFormSubmit(
-  destino: string,
-  datos: Record<string, string>,
-): Promise<ResultadoEnvio> {
+async function enviarEmail(parametros: Record<string, string>): Promise<ResultadoEnvio> {
+  if (SERVICIO === "" || CLAVE_PUBLICA === "" || PLANTILLA_AVISO === "") {
+    return { ok: false, mensaje: "EmailJS no está configurado." }
+  }
+
   try {
-    const respuesta = await fetch(
-      `https://formsubmit.co/ajax/${encodeURIComponent(destino.trim())}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(datos),
+    const respuesta = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    )
+      body: JSON.stringify({
+        service_id: SERVICIO,
+        template_id: PLANTILLA_AVISO,
+        user_id: CLAVE_PUBLICA,
+        template_params: parametros,
+      }),
+    })
+
+    if (respuesta.ok) return { ok: true }
 
     const texto = await respuesta.text()
-    let cuerpo: { success?: unknown; message?: unknown } | null = null
-    try {
-      cuerpo = JSON.parse(texto) as { success?: unknown; message?: unknown }
-    } catch {
-      cuerpo = null
-    }
-
-    if (respuesta.ok && String(cuerpo?.success) === "true") {
-      return { ok: true }
-    }
-
-    const mensaje =
-      typeof cuerpo?.message === "string" && cuerpo.message.trim() !== ""
-        ? cuerpo.message
-        : `FormSubmit respondió HTTP ${respuesta.status}.`
-
-    return {
-      ok: false,
-      tipo: esActivacion(mensaje) ? "activacion" : "error",
-      mensaje,
-    }
+    return { ok: false, mensaje: describirError(respuesta.status, texto) }
   } catch (error) {
     return {
       ok: false,
-      tipo: "error",
       mensaje:
-        error instanceof Error ? error.message : "No se pudo conectar con FormSubmit.",
+        error instanceof Error ? error.message : "No se pudo conectar con EmailJS.",
     }
   }
 }
 
-export async function enviarCorreoAgradecimiento({
-  nombre,
-  email,
-}: {
-  nombre: string
-  email: string
-}): Promise<ResultadoEnvio> {
-  return enviarFormSubmit(email, {
-    _subject: `Muchísimas gracias ${nombre.trim()}!`,
-    mensaje: "Te agradecemos enormemente el regalito para Emilia ❤️.",
-    _captcha: "false",
-  })
-}
-
-export async function enviarNotificacionAdmins({
+export async function enviarNotificacionReserva({
   nombre,
   email,
   producto,
   cantidad,
-}: DatosReserva): Promise<ResultadoEnvio[]> {
-  const cuerpo = {
-    _subject: `Nueva reserva: ${producto} (${cantidad})`,
+}: DatosReserva): Promise<ResultadoEnvio> {
+  return enviarEmail({
     nombre: nombre.trim(),
     email: email.trim(),
     producto,
     cantidad: String(cantidad),
-    _captcha: "false",
-  }
-
-  return Promise.all([
-    enviarFormSubmit(ADMIN_1, cuerpo),
-    enviarFormSubmit(ADMIN_2, cuerpo),
-  ])
+  })
 }

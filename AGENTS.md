@@ -16,6 +16,7 @@ entre dispositivos en tiempo real; sin configurar, usa LocalStorage como fallbac
 - Tailwind v4 se integra con el plugin `@tailwindcss/vite` (ver `vite.config.ts`). **No hay `tailwind.config.js`**: los tokens de tema (paleta pastel: `celeste-*`, `rosado-*`, `menta-*`, `crema-*`) se definen en `src/index.css` con `@theme`.
 - `read-excel-file` v9 para leer `.xlsx` en el navegador.
 - `@supabase/supabase-js` para el backend compartido opcional (tablas + RPC + Realtime).
+- EmailJS vía REST para las notificaciones por correo (sin SDK ni backend).
 
 ## Estructura
 ```
@@ -57,13 +58,15 @@ supabase/schema.sql          # Tablas, RLS, RPCs y Realtime para Supabase
 - `cargar_inventario` reemplaza todo el inventario y borra las reservas; se usa para importar, "Restaurar datos de ejemplo" y "Vaciar inventario".
 - La seguridad sigue siendo de roles: la clave admin es solo UI y las RPC están expuestas al rol `anon`. No usar para datos sensibles.
 
-## Notificaciones por correo (FormSubmit)
-- Se envían desde el navegador a `https://formsubmit.co/ajax/<destino>` con JSON. FormSubmit responde HTTP 200 incluso en errores, así que hay que validar `String(data.success) === "true"`; no basta con `response.ok`.
-- Destinatarios admin configurables con `VITE_FORMSUBMIT_ADMIN_1` y `VITE_FORMSUBMIT_ADMIN_2`; por defecto son `pabloenriqueacuna@gmail.com` y `fonoaudiologia.fernanda.b@gmail.com`.
-- Cada dirección debe activarse una vez desde el correo "Activate Form". Hasta activarla, FormSubmit responde "This form needs Activation" y reenvía la activación en cada intento.
-- El agradecimiento al invitado también requiere activación; la app le avisa en pantalla que revise su correo y Spam. Los envíos previos a la activación se entregan después de activar (hasta 30 días).
-- Si una dirección sigue pidiendo activación después de activarla, usar el string aleatorio que llega en ese correo en la variable correspondiente.
-- La reserva no depende del correo: si el envío falla, se guarda igual y se muestra un aviso no bloqueante. FormSubmit puede estar caído (HTTP 521) y no hay reintentos automáticos.
+## Notificaciones por correo (EmailJS)
+- Se envían desde el navegador a `https://api.emailjs.com/api/v1.0/email/send` con JSON. Un `200 "OK"` indica éxito; no se usa SDK ni backend.
+- Variables: `VITE_EMAILJS_SERVICE_ID`, `VITE_EMAILJS_PUBLIC_KEY` y `VITE_EMAILJS_TEMPLATE_AVISO`. La Public Key es pública; nunca poner la Private Key en el cliente.
+- La plantilla de aviso (`template_m60m955`) envía a `pabloenriqueacuna@gmail.com` con BCC a `fonoaudiologia.fernanda.b@gmail.com` y Reply-To `{{email}}`. Su Auto-Reply usa `template_o67gvxj` para agradecer al invitado con To `{{email}}` y Reply-To al admin.
+- La app hace una sola llamada API por reserva; EmailJS dispara el aviso y la auto-respuesta. La auto-respuesta consume cuota adicional: el plan Free (200 solicitudes/mes, 2 plantillas) alcanza para ~100 reservas/mes.
+- Gmail personal es para bajo volumen y puede marcar los correos como Spam. Si se supera el volumen, usar un proveedor transaccional o el plan pago.
+- La reserva no depende del correo: si EmailJS falla (400/412/422/429 o red), se guarda igual y se muestra un aviso no bloqueante. No hay reintentos automáticos.
+- Errores: 400 = configuración (service/template/public key); 412 = reconectar Gmail; 422 = correo del invitado inválido o plantilla sin destinatario; 429 = límite de EmailJS.
+- Límite de EmailJS: 1 solicitud/segundo. Una llamada por reserva lo respeta.
 
 ## Gotchas
 - **`read-excel-file` v9**: importar `{ readSheet }` desde `'read-excel-file/browser'` (no existe el import raíz `'read-excel-file'`). El export default devuelve todas las hojas; `readSheet` devuelve las filas de una hoja.

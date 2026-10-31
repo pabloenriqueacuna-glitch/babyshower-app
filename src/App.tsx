@@ -7,7 +7,7 @@ import { PanelAdmin } from './components/admin/PanelAdmin'
 import { useRegalos } from './context/regalos'
 import type { Regalo } from './types'
 import { claveCategoria } from './utils/categorias'
-import { enviarCorreoAgradecimiento, enviarNotificacionAdmins } from './utils/notificaciones'
+import { enviarNotificacionReserva } from './utils/notificaciones'
 
 function useHash() {
   const [hash, setHash] = useState(() => window.location.hash)
@@ -41,39 +41,21 @@ function VistaInvitado() {
     cantidad: number,
   ) => {
     try {
-      const [resultadoInvitado, resultadosAdmins] = await Promise.all([
-        enviarCorreoAgradecimiento({ nombre, email }),
-        enviarNotificacionAdmins({
-          nombre,
-          email,
-          producto: regalo.nombre,
-          cantidad,
-        }),
-      ])
+      const resultado = await enviarNotificacionReserva({
+        nombre,
+        email,
+        producto: regalo.nombre,
+        cantidad,
+      })
 
-      const avisos: string[] = []
-
-      if (!resultadoInvitado.ok) {
-        console.error('FormSubmit (invitado):', resultadoInvitado.mensaje)
-        avisos.push(
-          resultadoInvitado.tipo === 'activacion'
-            ? 'Revisa tu correo y Spam; busca “Activate Form” para recibir el agradecimiento.'
-            : 'No se pudo enviar el correo de agradecimiento.',
+      if (!resultado.ok) {
+        console.error('EmailJS:', resultado.mensaje)
+        setAvisoCorreo(
+          'La reserva quedó guardada, pero no se pudo enviar el correo de agradecimiento. Revisa tu correo y Spam; si no llega, avisa a los organizadores.',
         )
       }
-
-      if (resultadosAdmins.some((resultado) => !resultado.ok)) {
-        resultadosAdmins.forEach((resultado) => {
-          if (!resultado.ok) console.error('FormSubmit (admin):', resultado.mensaje)
-        })
-        avisos.push('No se pudo enviar el aviso a los organizadores.')
-      }
-
-      if (avisos.length > 0) {
-        setAvisoCorreo(`La reserva quedó guardada. ${avisos.join(' ')}`)
-      }
     } catch (error) {
-      console.error('No se pudieron enviar las notificaciones:', error)
+      console.error('No se pudo enviar la notificación:', error)
       setAvisoCorreo(
         'La reserva quedó guardada, pero no se pudo enviar el aviso por correo.',
       )
@@ -90,7 +72,9 @@ function VistaInvitado() {
 
     const nombreLimpio = nombre.trim()
     const emailLimpio = email.trim()
-    setMensaje(`¡Gracias ${nombreLimpio}! Reservaste ${cantidad} × ${regalo.nombre}.`)
+    setMensaje(
+      `¡Gracias ${nombreLimpio}! Reservaste ${cantidad} × ${regalo.nombre}. Revisa tu correo y Spam para ver el agradecimiento.`,
+    )
     setRegaloSeleccionado(null)
     void notificarReserva(nombreLimpio, emailLimpio, regalo, cantidad)
     return true
