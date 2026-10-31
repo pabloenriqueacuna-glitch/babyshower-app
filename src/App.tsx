@@ -92,7 +92,7 @@ function VistaInvitado() {
           <br />
           Si puedes, recuerda pedir ticket de cambio por si necesitamos cambiar talla o modelo. 🥰
           <br />
-          Si prefieres enviar el regalo a nuestro domicilio, aquí tienes la dirección: Pasaje Juan Francisco González 1965, Peñaflor.
+          Si prefieres enviar el regalo a nuestro domicilio, aquí tienes la dirección: Pasaje Juan Francisco González 1965, Villa Parque Miraflores Sur, Peñaflor.
           <br />
           ¡Gracias por ser parte de este momento tan especial para nosotros! ✨💕
         </p>
