@@ -67,6 +67,7 @@ supabase/schema.sql          # Tablas, RLS, RPCs y Realtime para Supabase
 - La reserva no depende del correo: si EmailJS falla (400/412/422/429 o red), se guarda igual y se muestra un aviso no bloqueante. No hay reintentos automáticos.
 - Errores: 400 = configuración (service/template/public key); 412 = reconectar Gmail; 422 = correo del invitado inválido o plantilla sin destinatario; 429 = límite de EmailJS.
 - Límite de EmailJS: 1 solicitud/segundo. Una llamada por reserva lo respeta.
+- Vite incrusta las variables `VITE_*` en el build: al cambiarlas en Vercel hay que hacer redeploy sin caché. Si faltan, el bundle muestra "EmailJS no está configurado" y no realiza la petición.
 
 ## Gotchas
 - **`read-excel-file` v9**: importar `{ readSheet }` desde `'read-excel-file/browser'` (no existe el import raíz `'read-excel-file'`). El export default devuelve todas las hojas; `readSheet` devuelve las filas de una hoja.
