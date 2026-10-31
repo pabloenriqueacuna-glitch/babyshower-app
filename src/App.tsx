@@ -85,9 +85,15 @@ function VistaInvitado() {
       <div className="mb-6 rounded-2xl bg-rosado-100 p-4 text-center">
         <p className="text-sm text-gray-600">
           💕 Lo más importante para nosotros es contar con tu compañía y cariño en la bienvenida de nuestra princesa 🎀👶🏻
+          <br />
           Te dejamos una lista de ideas para inspirarte. Elige un regalo y anótate para evitar repetir obsequios.
+          <br />
           Y si algo no está disponible o prefieres elegir otra cosita, eres totalmente libre de hacerlo:  la lista es solo una guía y cualquier detalle para nuestra bebita será recibido con muchísimo amor. 🩷
+          <br />
           Si puedes, recuerda pedir ticket de cambio por si necesitamos cambiar talla o modelo. 🥰
+          <br />
+          Si prefieres enviar el regalo a nuestro domicilio, aquí tienes la dirección: Pasaje Juan Francisco González 1965, Peñaflor.
+          <br />
           ¡Gracias por ser parte de este momento tan especial para nosotros! ✨💕
         </p>
       </div>
